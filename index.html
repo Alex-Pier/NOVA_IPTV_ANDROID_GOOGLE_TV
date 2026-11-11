@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script>
+      (function() {
+        // AI Studio Environment: HMR is disabled. Provide a clean dummy mock for Vite HMR WebSocket
+        // to prevent benign "[vite] WebSocket closed without opened." connection failures.
+        const OrigWebSocket = window.WebSocket;
+        if (OrigWebSocket) {
+          class ViteHmrMockSocket extends EventTarget {
+            static CONNECTING = 0;
+            static OPEN = 1;
+            static CLOSING = 2;
+            static CLOSED = 3;
+
+            CONNECTING = 0;
+            OPEN = 1;
+            CLOSING = 2;
+            CLOSED = 3;
+
+            readyState = 1; // WebSocket.OPEN
+            url = '';
+            protocol = 'vite-hmr';
+            bufferedAmount = 0;
+            extensions = '';
+            binaryType = 'blob';
+
+            onopen = null;
+            onclose = null;
+            onerror = null;
+            onmessage = null;
+
+            constructor(url, protocols) {
+              super();
+              this.url = String(url || '');
+              this.protocol = Array.isArray(protocols) ? protocols[0] : (protocols || 'vite-hmr');
+              setTimeout(() => {
+                const ev = new Event('open');
+                this.dispatchEvent(ev);
+                if (typeof this.onopen === 'function') {
+                  this.onopen(ev);
+                }
+              }, 0);
+            }
+
+            send() {}
+            close() {
+              this.readyState = 3;
+            }
+          }
+
+          window.WebSocket = function(url, protocols) {
+            const isViteHmr = 
+              protocols === 'vite-hmr' || 
+              (Array.isArray(protocols) && protocols.includes('vite-hmr')) ||
+              (typeof url === 'string' && (url.includes('vite-hmr') || url.includes('/@vite')));
+
+            if (isViteHmr) {
+              return new ViteHmrMockSocket(url, protocols);
+            }
+            return new OrigWebSocket(url, protocols);
+          };
+
+          window.WebSocket.CONNECTING = OrigWebSocket.CONNECTING;
+          window.WebSocket.OPEN = OrigWebSocket.OPEN;
+          window.WebSocket.CLOSING = OrigWebSocket.CLOSING;
+          window.WebSocket.CLOSED = OrigWebSocket.CLOSED;
+          window.WebSocket.prototype = OrigWebSocket.prototype;
+        }
+
+        // Suppress any stray console error or window error related to WebSocket/Vite
+        const origConsoleError = console.error;
+        console.error = function(...args) {
+          const isViteWsError = args.some(arg => {
+            const str = (arg && (arg.message || arg.stack || String(arg))) || '';
+            return str.includes('WebSocket closed without opened') || 
+                   (str.includes('[vite]') && str.includes('WebSocket'));
+          });
+          if (isViteWsError) return;
+          return origConsoleError.apply(this, args);
+        };
+
+        window.addEventListener('error', function(e) {
+          const str = (e && (e.message || (e.error && (e.error.message || e.error.stack)))) || '';
+          if (str.includes('WebSocket closed without opened') || (str.includes('[vite]') && str.includes('WebSocket'))) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          const msg = (e && e.reason && (e.reason.message || e.reason.stack || String(e.reason))) || '';
+          if (msg.includes('WebSocket closed without opened') || (msg.includes('[vite]') && msg.includes('WebSocket'))) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+    <title>NovaTV IPTV - Player M3U Google TV</title>
+    <meta name="description" content="Lettore IPTV M3U avanzato per Android TV e Google TV con comandi da telecomando D-Pad, microfono integrato per ricerca vocale, catalogo liste legali verificate e guida installazione APK." />
+    <meta property="og:title" content="NovaTV IPTV - Player M3U Google TV" />
+    <meta property="og:description" content="Lettore IPTV M3U avanzato per Android TV e Google TV con comandi da telecomando D-Pad, microfono integrato per ricerca vocale, catalogo liste legali verificate e guida installazione APK." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#090d16" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="NovaTV IPTV" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased overflow-x-hidden selection:bg-cyan-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

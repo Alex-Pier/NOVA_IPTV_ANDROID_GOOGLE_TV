@@ -1,0 +1,6 @@
+{
+  "name": "NovaTV IPTV - Player M3U Google TV",
+  "description": "Lettore IPTV M3U avanzato per Android TV e Google TV con comandi da telecomando D-Pad, microfono integrato per ricerca vocale, catalogo liste legali verificate e guida installazione APK.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
